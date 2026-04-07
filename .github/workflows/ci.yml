@@ -166,17 +166,7 @@ jobs:
           else
             ALLURE_URL="Allure report is available as workflow artifact."
           fi
-          MESSAGE="CI/CD result: ${OVERALL}
-Repository: ${REPO}
-Branch: ${REF_NAME}
-Commit: ${SHA}
-Unit: ${UNIT_STATUS}
-API: ${API_STATUS}
-UI: ${UI_STATUS}
-Docker: ${DOCKER_STATUS}
-Allure: ${ALLURE_STATUS}
-Actions run: https://github.com/${REPO}/actions/runs/${RUN_ID}
-Allure: ${ALLURE_URL}"
+          MESSAGE="CI/CD result: ${OVERALL}\nRepository: ${REPO}\nBranch: ${REF_NAME}\nCommit: ${SHA}\nUnit: ${UNIT_STATUS}\nAPI: ${API_STATUS}\nUI: ${UI_STATUS}\nDocker: ${DOCKER_STATUS}\nAllure: ${ALLURE_STATUS}\nActions run: https://github.com/${REPO}/actions/runs/${RUN_ID}\nAllure: ${ALLURE_URL}"
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             -d chat_id="${TELEGRAM_CHAT_ID}" \
             --data-urlencode text="${MESSAGE}"
