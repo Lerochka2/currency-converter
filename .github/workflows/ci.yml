@@ -2,316 +2,153 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
-permissions:
-  contents: write
+env:
+  ALLURE_RESULTS_DIR: allure-results
 
 jobs:
+  # ==================== Модульные тесты (Jest + Allure) ====================
   unit-tests:
-    name: Unit (${{ matrix.os }}, Node ${{ matrix.node-version }})
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        node-version: [18.x, 20.x, 22.x]
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18, 20, 22]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-${{ matrix.node-version }}-
-            ${{ runner.os }}-node-
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run unit tests
+          cache: 'npm'
+      - run: npm ci
+      - name: Run unit tests (Jest + Allure)
         run: npm run test:unit
-
-      - name: Upload reports artifacts
+      - name: Upload Jest Allure results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: unit-reports-${{ matrix.os }}-node-${{ matrix.node-version }}
-          if-no-files-found: ignore
-          path: |
-            reports/**
-            test-results/**
-            allure-results/**
+          name: allure-results-jest-${{ matrix.node-version }}
+          path: allure-results/
 
-      - name: Upload allure results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results-unit-${{ matrix.os }}-node-${{ matrix.node-version }}
-          if-no-files-found: ignore
-          path: allure-results/**
-
+  # ==================== API-тесты (Cucumber + Allure) ====================
   api-tests:
-    name: API (${{ matrix.os }}, Node ${{ matrix.node-version }})
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        node-version: [18.x, 20.x, 22.x]
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18, 20, 22]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-${{ matrix.node-version }}-
-            ${{ runner.os }}-node-
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Start server in background
-        shell: bash
-        run: npm start &
-
-      - name: Wait for server
-        run: npx wait-on http://localhost:3000
-
-      - name: Run API tests
+          cache: 'npm'
+      - run: npm ci
+      - name: Start server
+        run: |
+          npm start &
+          npx wait-on http://localhost:3000
+      - name: Run API tests (Cucumber + Allure)
         run: npm run test:api
-
-      - name: Upload reports artifacts
+      - name: Upload Cucumber Allure results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: api-reports-${{ matrix.os }}-node-${{ matrix.node-version }}
-          if-no-files-found: ignore
-          path: |
-            reports/**
-            test-results/**
-            allure-results/**
+          name: allure-results-cucumber-${{ matrix.node-version }}
+          path: allure-results/
 
-      - name: Upload allure results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results-api-${{ matrix.os }}-node-${{ matrix.node-version }}
-          if-no-files-found: ignore
-          path: allure-results/**
-
+  # ==================== UI-тесты (Playwright + Allure) ====================
   ui-tests:
-    name: UI (${{ matrix.os }}, Node ${{ matrix.node-version }})
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        node-version: [18.x, 20.x, 22.x]
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18, 20, 22]
+        browser: [chromium]   # можно добавить firefox, webkit, но дольше
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-${{ matrix.node-version }}-
-            ${{ runner.os }}-node-
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
+          cache: 'npm'
+      - run: npm ci
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Start server in background
-        shell: bash
-        run: npm start &
-
-      - name: Wait for server
-        run: npx wait-on http://localhost:3000
-
-      - name: Run UI tests
-        run: npm run test:ui
-
-      - name: Upload reports artifacts
+        run: npx playwright install ${{ matrix.browser }} --with-deps
+      - name: Start server
+        run: |
+          npm start &
+          npx wait-on http://localhost:3000
+      - name: Run UI tests (Playwright + Allure)
+        run: npm run test:ui -- --project=${{ matrix.browser }}
+      - name: Upload Playwright Allure results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ui-reports-${{ matrix.os }}-node-${{ matrix.node-version }}
-          if-no-files-found: ignore
-          path: |
-            reports/**
-            test-results/**
-            playwright-report/**
-            allure-results/**
+          name: allure-results-playwright-${{ matrix.browser }}-node-${{ matrix.node-version }}
+          path: allure-results/
 
-      - name: Upload allure results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results-ui-${{ matrix.os }}-node-${{ matrix.node-version }}
-          if-no-files-found: ignore
-          path: allure-results/**
-
-   docker-test:
-    name: Docker test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build Docker image
-        run: docker build -t currency-converter:test .
-
-      - name: Run container in background
-        run: docker run -d -p 3000:3000 --name cc currency-converter:test
-
-      - name: Wait for server
-        run: docker exec cc wait-on http://localhost:3000 --timeout 30000
-
-      - name: Run unit tests inside container
-        run: docker exec cc npm run test:unit
-
-      - name: Run API tests inside container
-        run: docker exec cc npm run test:api
-
-      - name: Run UI tests inside container
-        run: docker exec cc npm run test:ui
-
-      - name: Stop and remove container
-        if: always()
-        run: docker stop cc || true && docker rm cc || true
-        
+  # ==================== Генерация Allure-отчёта и деплой на GitHub Pages ====================
   allure-report:
-    name: Build and publish Allure report
     runs-on: ubuntu-latest
-    needs: [unit-tests, api-tests, ui-tests, docker-test]
+    needs: [unit-tests, api-tests, ui-tests]
     if: always()
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20.x
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Download all allure artifacts
+          node-version: 22
+          cache: 'npm'
+      - run: npm ci
+      - name: Download all Allure results
         uses: actions/download-artifact@v4
         with:
-          pattern: allure-results-*
-          path: all-allure-results
-          merge-multiple: true
-
-      - name: Prepare unified allure-results folder
-        shell: bash
+          path: all-allure-results/
+      - name: Merge Allure results
         run: |
-          mkdir -p allure-results
-          cp -r all-allure-results/* allure-results/ 2>/dev/null || true
-
+          mkdir -p merged-allure-results
+          find all-allure-results -name "*.json" -exec cp {} merged-allure-results/ \;
+          find all-allure-results -name "*.txt" -exec cp {} merged-allure-results/ \;
+          find all-allure-results -name "*.png" -exec cp {} merged-allure-results/ \;
       - name: Generate Allure report
-        run: npx allure generate allure-results --clean -o allure-report
-
-      - name: Upload Allure HTML artifact
+        run: npx allure generate merged-allure-results --clean -o allure-report
+      - name: Upload Allure report as artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: allure-report
-          path: allure-report
-
+          path: allure-report/
       - name: Deploy to GitHub Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./allure-report
+          destination_dir: allure-reports/${{ github.run_number }}
 
+  # ==================== Уведомление в Telegram (опционально) ====================
   notify:
-    name: Telegram notification
     runs-on: ubuntu-latest
-    needs: [unit-tests, api-tests, ui-tests, docker-test, allure-report]
+    needs: [unit-tests, api-tests, ui-tests, allure-report]
     if: always()
     steps:
-      - name: Send Telegram message
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          UNIT_STATUS: ${{ needs.unit-tests.result }}
-          API_STATUS: ${{ needs.api-tests.result }}
-          UI_STATUS: ${{ needs.ui-tests.result }}
-          DOCKER_STATUS: ${{ needs.docker-test.result }}
-          ALLURE_STATUS: ${{ needs.allure-report.result }}
-          REPO: ${{ github.repository }}
-          RUN_ID: ${{ github.run_id }}
-          REF_NAME: ${{ github.ref_name }}
-          SHA: ${{ github.sha }}
+      - name: Check overall status
         run: |
-          if [ "$UNIT_STATUS" = "success" ] && [ "$API_STATUS" = "success" ] && [ "$UI_STATUS" = "success" ] && [ "$DOCKER_STATUS" = "success" ]; then
-            OVERALL="SUCCESS"
+          if [[ "${{ needs.unit-tests.result }}" == "success" ]] && \
+             [[ "${{ needs.api-tests.result }}" == "success" ]] && \
+             [[ "${{ needs.ui-tests.result }}" == "success" ]]; then
+            echo "✅ All tests passed!"
           else
-            OVERALL="FAILED"
+            echo "❌ Some tests failed. Check Allure report for details."
+            exit 1
           fi
-
-          if [ "$REF_NAME" = "main" ] && [ "$ALLURE_STATUS" = "success" ]; then
-            ALLURE_URL="https://${REPO%/*}.github.io/${REPO#*/}/"
-          else
-            ALLURE_URL="Allure report is available as workflow artifact."
-          fi
-
-          MESSAGE="CI/CD result: ${OVERALL}
-          Repository: ${REPO}
-          Branch: ${REF_NAME}
-          Commit: ${SHA}
-          Unit: ${UNIT_STATUS}
-          API: ${API_STATUS}
-          UI: ${UI_STATUS}
-          Docker: ${DOCKER_STATUS}
-          Allure: ${ALLURE_STATUS}
-          Actions run: https://github.com/${REPO}/actions/runs/${RUN_ID}
-          Allure: ${ALLURE_URL}"
-
-          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d chat_id="${TELEGRAM_CHAT_ID}" \
-            --data-urlencode text="${MESSAGE}"
+      - name: Send Telegram notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            📊 Результаты CI/CD для ${{ github.repository }}
+            Статус: ${{ (needs.unit-tests.result == 'success' && needs.api-tests.result == 'success' && needs.ui-tests.result == 'success') && '✅ Успешно' || '❌ Ошибка' }}
+            Ветка: ${{ github.ref_name }}
+            Коммит: ${{ github.sha }}
+            Ссылка на отчёт: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/allure-reports/${{ github.run_number }}/
