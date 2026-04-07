@@ -192,7 +192,7 @@ jobs:
           if-no-files-found: ignore
           path: allure-results/**
 
-  docker-test:
+   docker-test:
     name: Docker test
     runs-on: ubuntu-latest
     steps:
@@ -202,13 +202,29 @@ jobs:
       - name: Build Docker image
         run: docker build -t currency-converter:test .
 
-      - name: Run unit tests inside Docker
-        run: docker run --rm currency-converter:test npm run test:unit
+      - name: Run container in background
+        run: docker run -d -p 3000:3000 --name cc currency-converter:test
 
+      - name: Wait for server
+        run: docker exec cc wait-on http://localhost:3000 --timeout 30000
+
+      - name: Run unit tests inside container
+        run: docker exec cc npm run test:unit
+
+      - name: Run API tests inside container
+        run: docker exec cc npm run test:api
+
+      - name: Run UI tests inside container
+        run: docker exec cc npm run test:ui
+
+      - name: Stop and remove container
+        if: always()
+        run: docker stop cc || true && docker rm cc || true
+        
   allure-report:
     name: Build and publish Allure report
     runs-on: ubuntu-latest
-    needs: [unit-tests, api-tests, ui-tests]
+    needs: [unit-tests, api-tests, ui-tests, docker-test]
     if: always()
     steps:
       - name: Checkout repository
