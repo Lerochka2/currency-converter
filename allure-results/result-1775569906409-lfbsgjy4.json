@@ -1,0 +1,14 @@
+{
+  "name": "USD -> BYN рассчитывается корректно",
+  "status": "passed",
+  "start": 1775569906409,
+  "stop": 1775569906409,
+  "stage": "finished",
+  "description": "Конвертация валют (unit) USD -> BYN рассчитывается корректно",
+  "labels": [
+    {
+      "name": "suite",
+      "value": "unknown"
+    }
+  ]
+}

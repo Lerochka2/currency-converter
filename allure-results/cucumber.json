@@ -1,0 +1,113 @@
+[
+  {
+    "description": "  Как пользователь API\n  Я хочу конвертировать валюту\n  Чтобы получить корректный результат",
+    "elements": [
+      {
+        "description": "",
+        "id": "api-конвертации-валют;успешная-конвертация-usd-в-byn",
+        "keyword": "Scenario",
+        "line": 6,
+        "name": "Успешная конвертация USD в BYN",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "API конвертера доступен",
+            "match": {
+              "location": "steps\\apiSteps.js:6"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 349199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 8,
+            "name": "я отправляю запрос на конвертацию из \"USD\" в \"BYN\" с суммой 100",
+            "match": {
+              "location": "steps\\apiSteps.js:10"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 22124399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 9,
+            "name": "ответ содержит результат 320",
+            "match": {
+              "location": "steps\\apiSteps.js:17"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 402600
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "api-конвертации-валют;ошибка-при-отрицательной-сумме",
+        "keyword": "Scenario",
+        "line": 11,
+        "name": "Ошибка при отрицательной сумме",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 12,
+            "name": "API конвертера доступен",
+            "match": {
+              "location": "steps\\apiSteps.js:6"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 55800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 13,
+            "name": "я отправляю запрос на конвертацию из \"USD\" в \"BYN\" с суммой -5",
+            "match": {
+              "location": "steps\\apiSteps.js:10"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3254500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 14,
+            "name": "ответ содержит ошибку \"Сумма не может быть отрицательной\"",
+            "match": {
+              "location": "steps\\apiSteps.js:22"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 116700
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      }
+    ],
+    "id": "api-конвертации-валют",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "API конвертации валют",
+    "tags": [],
+    "uri": "features\\api.feature"
+  }
+]

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конвертер валют</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Конвертер валют</h1>
+            <p class="subtitle">Мгновенный расчёт по актуальному курсу</p>
+
+            <div class="form-group">
+                <label for="fromCurrency">Из валюты</label>
+                <select id="fromCurrency" class="currency-select">
+                    <option value="USD">USD — Доллар США</option>
+                    <option value="EUR">EUR — Евро</option>
+                    <option value="BYN">BYN — Белорусский рубль</option>
+                    <option value="RUB">RUB — Российский рубль</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="toCurrency">В валюту</label>
+                <select id="toCurrency" class="currency-select">
+                    <option value="USD">USD — Доллар США</option>
+                    <option value="EUR">EUR — Евро</option>
+                    <option value="BYN">BYN — Белорусский рубль</option>
+                    <option value="RUB">RUB — Российский рубль</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="amount">Сумма</label>
+                <input type="number" id="amount" step="any" placeholder="0.00" class="amount-input">
+            </div>
+
+            <button id="convertBtn" class="convert-btn">Конвертировать</button>
+
+            <div id="result" class="result-block"></div>
+            <div id="error" class="error-block"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
